@@ -4,6 +4,7 @@ function ExpenseList({
   onDelete,
   forceLabel,
   forceBadgeColor,
+  forceAccent,
   emptyTitle = 'No expenses yet',
   emptyBody = 'Start logging expenses to populate your dashboard.'
 }) {
@@ -18,19 +19,23 @@ function ExpenseList({
   const typeMeta = {
     miscellaneous: {
       label: 'Miscellaneous',
-      color: '#6f42c1'
+      color: '#6f42c1',
+      accent: 'rgba(111, 66, 193, 0.16)'
     },
     bankLoan: {
       label: 'Bank Loan',
-      color: '#0b69c7'
+      color: '#0b69c7',
+      accent: 'rgba(11, 105, 199, 0.15)'
     },
     cash: {
       label: 'Cash Payment',
-      color: '#0f9d58'
+      color: '#0f9d58',
+      accent: 'rgba(15, 157, 88, 0.15)'
     },
     emi: {
       label: 'EMI Payment',
-      color: '#ff8c42'
+      color: '#ff8c42',
+      accent: 'rgba(255, 140, 66, 0.18)'
     }
   }
 
@@ -58,17 +63,32 @@ function ExpenseList({
   return (
     <div className="expense-groups">
       {Object.keys(groupedExpenses).map(type => {
+        const fallbackMeta = { label: type, color: '#6c757d', accent: 'rgba(108, 117, 125, 0.12)' }
         const meta = forceLabel
-          ? { label: forceLabel, color: forceBadgeColor || '#ff8c42' }
-          : typeMeta[type] || { label: type, color: '#6c757d' }
+          ? {
+              label: forceLabel,
+              color: forceBadgeColor || '#ff8c42',
+              accent: forceAccent || 'rgba(255, 140, 66, 0.18)'
+            }
+          : typeMeta[type] || fallbackMeta
 
         return (
           <article key={type} className="expense-group card">
             <header className="expense-group__header">
-              <span className="expense-group__badge" style={{ backgroundColor: meta.color }} />
-              <div>
-                <h3>{meta.label}</h3>
-                <p>{groupedExpenses[type].length} entr{groupedExpenses[type].length === 1 ? 'y' : 'ies'}</p>
+              <div className="expense-group__title">
+                <span className="expense-group__badge" style={{ backgroundColor: meta.color }} />
+                <div>
+                  <h3>{meta.label}</h3>
+                  <span
+                    className="expense-group__chip"
+                    style={{
+                      backgroundColor: meta.accent,
+                      color: meta.color
+                    }}
+                  >
+                    {groupedExpenses[type].length} entr{groupedExpenses[type].length === 1 ? 'y' : 'ies'}
+                  </span>
+                </div>
               </div>
               <span className="expense-group__total">{formatCurrency(groupTotal(type))}</span>
             </header>
@@ -76,6 +96,7 @@ function ExpenseList({
             <div className="expense-group__body">
               {groupedExpenses[type].map(expense => (
                 <div key={expense.id} className="expense-row">
+                  <span className="expense-row__accent" style={{ backgroundColor: meta.color }} />
                   <div className="expense-row__details">
                     <span className="expense-row__title">{expense.description}</span>
                     <span className="expense-row__date">

@@ -91,6 +91,8 @@ function TrackerApp() {
           >
             + Add Expense
           </button>
+
+          <span className="page-header__underline" />
         </header>
 
         <Dashboard
@@ -130,6 +132,7 @@ function TrackerApp() {
             onDelete={handleDeleteExpense}
             forceLabel="Miscellaneous"
             forceBadgeColor="#6f42c1"
+            forceAccent="rgba(111, 66, 193, 0.16)"
             emptyTitle="No miscellaneous entries yet"
             emptyBody="Log any indirect spends related to the move—fittings, legal fees, or other extras."
           />
@@ -149,6 +152,7 @@ function TrackerApp() {
             onDelete={handleDeleteExpense}
             forceLabel="EMI Payment"
             forceBadgeColor="#ff8c42"
+            forceAccent="rgba(255, 140, 66, 0.18)"
             emptyTitle="No EMI payments yet"
             emptyBody="Log each month’s EMI so you can compare payouts against bank schedules."
           />
