@@ -5,7 +5,7 @@ function ExpenseList({
   forceLabel,
   forceBadgeColor,
   emptyTitle = 'No expenses yet',
-  emptyBody = 'Start logging disbursements, EMIs, and misc spends to populate your dashboard.'
+  emptyBody = 'Start logging expenses to populate your dashboard.'
 }) {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {

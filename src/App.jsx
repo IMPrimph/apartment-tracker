@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import Dashboard from './components/Dashboard'
 import ExpenseForm from './components/ExpenseForm'
 import ExpenseList from './components/ExpenseList'
+import AuthGate from './components/AuthGate'
 import { initializeFirebase, addExpense, getExpenses, updateExpense, deleteExpense } from './firebase'
 
-function App() {
+function TrackerApp() {
   const [expenses, setExpenses] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingExpense, setEditingExpense] = useState(null)
@@ -111,7 +112,7 @@ function App() {
             onEdit={handleEditExpense}
             onDelete={handleDeleteExpense}
             emptyTitle="No expenses yet"
-            emptyBody="Start logging construction, loan disbursements, or misc spends to populate your dashboard."
+            emptyBody="Start logging construction and loan disbursements to populate your dashboard."
           />
         </section>
 
@@ -180,6 +181,14 @@ function App() {
         />
       )}
     </div>
+  )
+}
+
+function App() {
+  return (
+    <AuthGate>
+      <TrackerApp />
+    </AuthGate>
   )
 }
 
