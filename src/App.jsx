@@ -143,7 +143,7 @@ function TrackerApp() {
       <div className="container">
         <header className="page-header">
           <div className="page-header__content">
-            <h1>Apartment Cost Tracker</h1>
+            <h1>Apartment Cost Tracker.</h1>
           </div>
           <div className="page-header__actions">
             <button
