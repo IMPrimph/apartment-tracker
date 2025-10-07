@@ -119,7 +119,7 @@ function TrackerApp() {
           <div className="loading-state">
             <div className="loading-spinner"></div>
             <h2>Loading Your Financial Data</h2>
-            <p>Please wait while we fetch your apartment cost tracker...</p>
+            <p>Please wait while we fetch your apartment cost tracker</p>
           </div>
         </div>
       </div>

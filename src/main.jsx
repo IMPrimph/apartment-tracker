@@ -7,13 +7,20 @@ import './index.css'
 const updateSW = registerSW({
   immediate: true,
   onNeedRefresh() {
-    updateSW(true)
+    // Automatically reload when new version is available
+    if (window.confirm('New version available! Reload to update?')) {
+      updateSW(true)
+    }
   },
-  onRegisteredSW(_, registration) {
+  onOfflineReady() {
+    console.log('App ready to work offline')
+  },
+  onRegisteredSW(swUrl, registration) {
     if (registration) {
+      // Check for updates every 60 seconds instead of 1 hour
       setInterval(() => {
         registration.update().catch(() => {})
-      }, 60 * 60 * 1000)
+      }, 60 * 1000)
     }
   }
 })
