@@ -27,26 +27,6 @@ function Dashboard({ expenses, emiPayments = [], miscellaneousExpenses = [] }) {
     return { ...totals, emi: emiTotal, miscellaneous: miscTotal }
   }
 
-  const getQuickStats = () => {
-    const allExpenses = [...expenses, ...emiPayments, ...miscellaneousExpenses]
-    const totalTransactions = allExpenses.length
-    
-    if (totalTransactions === 0) return null
-
-    const latestExpense = allExpenses
-      .sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date))[0]
-    
-    const thisMonth = new Date().toISOString().slice(0, 7)
-    const thisMonthExpenses = allExpenses.filter(exp => 
-      (exp.date || exp.createdAt)?.startsWith(thisMonth)
-    )
-    const thisMonthTotal = thisMonthExpenses.reduce((sum, exp) => 
-      sum + (parseFloat(exp.amount) || 0), 0
-    )
-
-    return { totalTransactions, latestExpense, thisMonthTotal, thisMonthCount: thisMonthExpenses.length }
-  }
-
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -56,39 +36,26 @@ function Dashboard({ expenses, emiPayments = [], miscellaneousExpenses = [] }) {
   }
 
   const totals = calculateTotals()
-  const quickStats = getQuickStats()
   const apartmentCost = 10000000 // 1 crore
-  const remainingCost = apartmentCost - totals.total
+  const bankLoanCap = 7500000 // 75 lakhs
+  const projectRemaining = Math.max(apartmentCost - totals.total, 0)
+  const bankLoanRemaining = Math.max(bankLoanCap - totals.bankLoan, 0)
   const progress = Math.min((totals.total / apartmentCost) * 100, 100)
 
   return (
     <section className="stats-section">
-      {quickStats && (
-        <div className="quick-stats">
-          <div className="quick-stat">
-            <span className="quick-stat__label">Total Transactions</span>
-            <span className="quick-stat__value">{quickStats.totalTransactions}</span>
-          </div>
-          <div className="quick-stat">
-            <span className="quick-stat__label">This Month</span>
-            <span className="quick-stat__value">₹{quickStats.thisMonthTotal.toLocaleString('en-IN')}</span>
-          </div>
-          <div className="quick-stat">
-            <span className="quick-stat__label">Monthly Entries</span>
-            <span className="quick-stat__value">{quickStats.thisMonthCount}</span>
-          </div>
-        </div>
-      )}
       <div className="stats-grid stats-grid--wide">
         <article className="stat-card stat-card--primary">
           <span className="stat-card__eyebrow">Total Invested</span>
           <h3 className="stat-card__value">{formatCurrency(totals.total)}</h3>
-          <span className="stat-card__meta">of {formatCurrency(apartmentCost)} target</span>
+          <span className="stat-card__meta">Target {formatCurrency(apartmentCost)}</span>
           <div className="stat-progress">
             <div className="stat-progress__bar">
               <span style={{ width: `${progress}%` }} />
             </div>
-            <span className="stat-progress__label">{progress.toFixed(1)}% complete</span>
+            <span className="stat-progress__label">
+              Pending {formatCurrency(projectRemaining)} · {progress.toFixed(1)}% complete
+            </span>
           </div>
         </article>
 
@@ -97,7 +64,12 @@ function Dashboard({ expenses, emiPayments = [], miscellaneousExpenses = [] }) {
           <h3 className="stat-card__value" style={{ color: '#3b82f6' }}>
             {formatCurrency(totals.bankLoan)}
           </h3>
-          <span className="stat-card__meta">Disbursed amount</span>
+          <span className="stat-card__meta">
+            Disbursed amount of {formatCurrency(bankLoanCap)}
+          </span>
+          <span className="stat-card__meta">
+            Pending {formatCurrency(bankLoanRemaining)}
+          </span>
         </article>
 
         <article className="stat-card">

@@ -3,6 +3,7 @@ import Dashboard from './components/Dashboard'
 import ExpenseForm from './components/ExpenseForm'
 import ExpenseList from './components/ExpenseList'
 import AuthGate from './components/AuthGate'
+import { exportExpensesToExcel } from './utils/exportToExcel'
 import { initializeFirebase, addExpense, getExpenses, updateExpense, deleteExpense } from './firebase'
 
 function TrackerApp() {
@@ -96,6 +97,21 @@ function TrackerApp() {
     setShowForm(true)
   }
 
+  const handleExportExpenses = () => {
+    if (expenses.length === 0) {
+      showNotification('No expenses to export yet.', 'error')
+      return
+    }
+
+    try {
+      exportExpensesToExcel(expenses)
+      showNotification('Export created successfully.')
+    } catch (error) {
+      console.error('Error exporting expenses:', error)
+      showNotification('Failed to export Excel. Please try again.', 'error')
+    }
+  }
+
   if (loading) {
     return (
       <div className="app-shell">
@@ -127,16 +143,15 @@ function TrackerApp() {
       <div className="container">
         <header className="page-header">
           <div className="page-header__content">
-            <p className="page-header__kicker">Personal finance dashboard</p>
             <h1>Apartment Cost Tracker</h1>
-            <p className="page-header__subtitle">
-              Track loan disbursements, cash payouts, EMIs, and miscellaneous spends in one clean overview.
-            </p>
-            <p className="page-header__hint">
-              Press <kbd>⌘K</kbd> to quickly add an expense
-            </p>
           </div>
           <div className="page-header__actions">
+            <button
+              className="btn btn-secondary"
+              onClick={handleExportExpenses}
+            >
+              Export to Excel
+            </button>
             <button
               className="btn btn-primary"
               onClick={() => {
