@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, orderBy, query } from 'firebase/firestore'
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, orderBy, query, enableIndexedDbPersistence } from 'firebase/firestore'
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -14,17 +14,72 @@ const firebaseConfig = {
 let app
 let db
 
-export const initializeFirebase = () => {
-  app = initializeApp(firebaseConfig)
-  db = getFirestore(app)
+const CACHE_KEY = 'apartment_tracker_expenses_cache'
+
+const persistExpensesToCache = (expenses) => {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(expenses))
+  } catch (error) {
+    console.warn('Unable to persist expenses cache:', error)
+  }
 }
+
+const loadExpensesFromCache = () => {
+  if (typeof window === 'undefined') return null
+  try {
+    const cached = localStorage.getItem(CACHE_KEY)
+    return cached ? JSON.parse(cached) : null
+  } catch (error) {
+    console.warn('Unable to read expenses cache:', error)
+    return null
+  }
+}
+
+const updateCache = (mutator) => {
+  const current = loadExpensesFromCache() || []
+  const next = mutator(current)
+  persistExpensesToCache(next)
+}
+
+const initializeFirebasePromise = (async () => {
+  if (!app) {
+    app = initializeApp(firebaseConfig)
+    db = getFirestore(app)
+
+    try {
+      await enableIndexedDbPersistence(db)
+    } catch (error) {
+      if (error.code === 'failed-precondition') {
+        console.warn('Firestore persistence: Multiple tabs open, continuing without offline cache.')
+      } else if (error.code === 'unimplemented') {
+        console.warn('Firestore persistence unsupported in this browser.')
+      } else {
+        console.warn('Firestore persistence error:', error)
+      }
+    }
+  }
+
+  return db
+})()
+
+export const initializeFirebase = () => initializeFirebasePromise
 
 export const addExpense = async (expenseData) => {
   try {
+    const createdAt = new Date()
     const docRef = await addDoc(collection(db, 'expenses'), {
       ...expenseData,
-      createdAt: new Date()
+      createdAt
     })
+    updateCache((expenses) => [
+      {
+        id: docRef.id,
+        ...expenseData,
+        createdAt: createdAt.toISOString()
+      },
+      ...expenses.filter(entry => entry.id !== docRef.id)
+    ])
     return docRef.id
   } catch (error) {
     console.error('Error adding expense:', error)
@@ -40,9 +95,14 @@ export const getExpenses = async () => {
     querySnapshot.forEach((doc) => {
       expenses.push({ id: doc.id, ...doc.data() })
     })
+    persistExpensesToCache(expenses)
     return expenses
   } catch (error) {
     console.error('Error getting expenses:', error)
+    const cachedExpenses = loadExpensesFromCache()
+    if (cachedExpenses) {
+      return cachedExpenses
+    }
     throw error
   }
 }
@@ -50,10 +110,16 @@ export const getExpenses = async () => {
 export const updateExpense = async (id, expenseData) => {
   try {
     const expenseRef = doc(db, 'expenses', id)
+    const updatedAt = new Date()
     await updateDoc(expenseRef, {
       ...expenseData,
-      updatedAt: new Date()
+      updatedAt
     })
+    updateCache((expenses) => expenses.map(entry =>
+      entry.id === id
+        ? { ...entry, ...expenseData, updatedAt: updatedAt.toISOString() }
+        : entry
+    ))
   } catch (error) {
     console.error('Error updating expense:', error)
     throw error
@@ -63,6 +129,7 @@ export const updateExpense = async (id, expenseData) => {
 export const deleteExpense = async (id) => {
   try {
     await deleteDoc(doc(db, 'expenses', id))
+    updateCache((expenses) => expenses.filter(entry => entry.id !== id))
   } catch (error) {
     console.error('Error deleting expense:', error)
     throw error

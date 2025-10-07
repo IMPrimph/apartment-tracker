@@ -3,6 +3,7 @@ import Dashboard from './components/Dashboard'
 import ExpenseForm from './components/ExpenseForm'
 import ExpenseList from './components/ExpenseList'
 import AuthGate from './components/AuthGate'
+import ErrorBoundary from './components/ErrorBoundary'
 import { initializeFirebase, addExpense, getExpenses, updateExpense, deleteExpense } from './firebase'
 
 function TrackerApp() {
@@ -14,8 +15,25 @@ function TrackerApp() {
   const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
-    initializeFirebase()
-    loadExpenses()
+    let isMounted = true
+
+    const initialise = async () => {
+      try {
+        await initializeFirebase()
+      } catch (error) {
+        console.error('Error initialising Firebase:', error)
+      } finally {
+        if (isMounted) {
+          await loadExpenses()
+        }
+      }
+    }
+
+    initialise()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   useEffect(() => {
@@ -288,7 +306,9 @@ function TrackerApp() {
 function App() {
   return (
     <AuthGate>
-      <TrackerApp />
+      <ErrorBoundary>
+        <TrackerApp />
+      </ErrorBoundary>
     </AuthGate>
   )
 }

@@ -1317,3 +1317,57 @@ kbd {
     max-width: none;
   }
 }
+
+/* Error Boundary */
+.error-boundary {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: var(--surface-elevated);
+}
+
+.error-boundary__card {
+  max-width: 460px;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.error-boundary__card h1 {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.error-boundary__card p {
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.error-boundary__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.error-boundary__details {
+  text-align: left;
+  background: var(--surface-elevated);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  color: var(--danger);
+  font-size: 13px;
+  overflow: auto;
+}
+
+@media (max-width: 480px) {
+  .error-boundary__actions {
+    flex-direction: column;
+  }
+}
