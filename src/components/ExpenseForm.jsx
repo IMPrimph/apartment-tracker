@@ -8,6 +8,8 @@ function ExpenseForm({ expense, onSubmit, onCancel }) {
     date: new Date().toISOString().split('T')[0]
   })
   const [displayAmount, setDisplayAmount] = useState('')
+  const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     if (expense) {
@@ -36,17 +38,43 @@ function ExpenseForm({ expense, onSubmit, onCancel }) {
     }
   }
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const newErrors = {}
+    
+    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      newErrors.amount = 'Please enter a valid amount greater than 0'
+    }
+    
+    if (!formData.description.trim()) {
+      newErrors.description = 'Please enter a description'
+    }
+    
+    if (!formData.date) {
+      newErrors.date = 'Please select a date'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!formData.amount || !formData.description) {
-      alert('Please fill in all required fields')
+    
+    if (!validateForm()) {
       return
     }
-    const parsedAmount = parseFloat(formData.amount)
-    onSubmit({
-      ...formData,
-      amount: Number.isNaN(parsedAmount) ? formData.amount : parsedAmount
-    })
+    
+    setIsSubmitting(true)
+    
+    try {
+      const parsedAmount = parseFloat(formData.amount)
+      await onSubmit({
+        ...formData,
+        amount: Number.isNaN(parsedAmount) ? formData.amount : parsedAmount
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const formatAmount = (value) => {
@@ -162,7 +190,11 @@ function ExpenseForm({ expense, onSubmit, onCancel }) {
               onChange={handleChange}
               placeholder="Enter amount"
               required
+              className={errors.amount ? 'form-input--error' : ''}
             />
+            {errors.amount && (
+              <p className="form-error">{errors.amount}</p>
+            )}
             {displayAmount && (
               <p className="form-helper">{displayAmount}</p>
             )}
@@ -177,7 +209,11 @@ function ExpenseForm({ expense, onSubmit, onCancel }) {
               placeholder="Enter description"
               rows="3"
               required
+              className={errors.description ? 'form-input--error' : ''}
             />
+            {errors.description && (
+              <p className="form-error">{errors.description}</p>
+            )}
           </div>
 
           <div className="form-group">
@@ -188,15 +224,23 @@ function ExpenseForm({ expense, onSubmit, onCancel }) {
               value={formData.date}
               onChange={handleChange}
               required
+              className={errors.date ? 'form-input--error' : ''}
             />
+            {errors.date && (
+              <p className="form-error">{errors.date}</p>
+            )}
           </div>
 
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
             <button type="button" onClick={onCancel} className="btn btn-ghost">
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary">
-              {expense ? 'Update' : 'Add'} Expense
+            <button 
+              type="submit" 
+              className="btn btn-primary"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : expense ? 'Update Expense' : 'Add Expense'}
             </button>
           </div>
         </form>
