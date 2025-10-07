@@ -15,7 +15,7 @@ function ExpenseForm({ expense, onSubmit, onCancel }) {
     if (expense) {
       setFormData({
         type: expense.type || 'miscellaneous',
-        amount: expense.amount || '',
+        amount: typeof expense.amount === 'number' ? expense.amount.toString() : expense.amount || '',
         description: expense.description || '',
         date: expense.date || new Date().toISOString().split('T')[0]
       })
@@ -78,21 +78,23 @@ function ExpenseForm({ expense, onSubmit, onCancel }) {
   }
 
   const formatAmount = (value) => {
-    if (!value) {
+    if (value === null || value === undefined || value === '') {
       setDisplayAmount('')
       return
     }
 
-    const numericValue = Number(value)
+    const rawValue = String(value)
+    const numericValue = Number(rawValue.replace(/,/g, ''))
 
     if (Number.isNaN(numericValue)) {
       setDisplayAmount('')
       return
     }
 
+    const hasDecimal = rawValue.indexOf('.') >= 0
     const formatter = new Intl.NumberFormat('en-IN', {
       maximumFractionDigits: 2,
-      minimumFractionDigits: value.includes('.') ? 2 : 0
+      minimumFractionDigits: hasDecimal ? 2 : 0
     })
 
     const formatted = formatter.format(numericValue)

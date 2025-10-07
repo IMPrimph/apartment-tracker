@@ -11,8 +11,6 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 }
 
-console.log('Firebase Config:', firebaseConfig)
-
 let app
 let db
 
