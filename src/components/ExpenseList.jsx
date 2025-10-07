@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 function ExpenseList({
   expenses,
   onEdit,
@@ -39,6 +41,8 @@ function ExpenseList({
     }
   }
 
+  const [collapsedGroups, setCollapsedGroups] = useState({})
+
   const groupedExpenses = expenses.reduce((groups, expense) => {
     const key = forceLabel ? 'all' : expense.type
     if (!groups[key]) {
@@ -47,6 +51,13 @@ function ExpenseList({
     groups[key].push(expense)
     return groups
   }, {})
+
+  const toggleGroup = (key) => {
+    setCollapsedGroups(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }))
+  }
 
   const groupTotal = (type) => groupedExpenses[type]
     .reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0)
@@ -72,9 +83,25 @@ function ExpenseList({
             }
           : typeMeta[type] || fallbackMeta
 
+        const isCollapsed = collapsedGroups[type] ?? false
+        const groupId = `expense-group-${type}`
+
         return (
-          <article key={type} className="expense-group card">
-            <header className="expense-group__header">
+          <article key={type} className={`expense-group card ${isCollapsed ? 'expense-group--collapsed' : ''}`}>
+            <header
+              className={`expense-group__header ${isCollapsed ? 'is-collapsed' : ''}`}
+              onClick={() => toggleGroup(type)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  toggleGroup(type)
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-expanded={!isCollapsed}
+              aria-controls={groupId}
+            >
               <div className="expense-group__title">
                 <span className="expense-group__badge" style={{ backgroundColor: meta.color }} />
                 <div>
@@ -90,46 +117,56 @@ function ExpenseList({
                   </span>
                 </div>
               </div>
-              <span className="expense-group__total">{formatCurrency(groupTotal(type))}</span>
+              <div className="expense-group__header-actions">
+                <span className="expense-group__total">{formatCurrency(groupTotal(type))}</span>
+                <button
+                  type="button"
+                  className={`expense-group__toggle ${isCollapsed ? 'is-collapsed' : ''}`}
+                  aria-hidden="true"
+                  tabIndex={-1}
+                />
+              </div>
             </header>
 
-            <div className="expense-group__body">
-              {groupedExpenses[type].map(expense => (
-                <div key={expense.id} className="expense-row">
-                  <span className="expense-row__accent" style={{ backgroundColor: meta.color }} />
-                  <div className="expense-row__details">
-                    <span className="expense-row__title">{expense.description}</span>
-                    <span className="expense-row__date">
-                      {expense.date ? new Date(expense.date).toLocaleDateString('en-IN', {
-                        day: '2-digit', month: 'short', year: 'numeric'
-                      }) : 'No date'}
-                    </span>
-                  </div>
+            {!isCollapsed && (
+              <div className="expense-group__body" id={groupId}>
+                {groupedExpenses[type].map(expense => (
+                  <div key={expense.id} className="expense-row">
+                    <span className="expense-row__accent" style={{ backgroundColor: meta.color }} />
+                    <div className="expense-row__details">
+                      <span className="expense-row__title">{expense.description}</span>
+                      <span className="expense-row__date">
+                        {expense.date ? new Date(expense.date).toLocaleDateString('en-IN', {
+                          day: '2-digit', month: 'short', year: 'numeric'
+                        }) : 'No date'}
+                      </span>
+                    </div>
 
-                  <div className="expense-row__meta">
-                    <span className="expense-row__amount">{formatCurrency(expense.amount)}</span>
-                    <div className="expense-row__actions">
-                      <button
-                        onClick={() => onEdit(expense)}
-                        className="btn btn-ghost"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (window.confirm('Delete this expense?')) {
-                            onDelete(expense.id)
-                          }
-                        }}
-                        className="btn btn-danger"
-                      >
-                        Delete
-                      </button>
+                    <div className="expense-row__meta">
+                      <span className="expense-row__amount">{formatCurrency(expense.amount)}</span>
+                      <div className="expense-row__actions">
+                        <button
+                          onClick={() => onEdit(expense)}
+                          className="btn btn-ghost"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm('Delete this expense?')) {
+                              onDelete(expense.id)
+                            }
+                          }}
+                          className="btn btn-danger"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </article>
         )
       })}
