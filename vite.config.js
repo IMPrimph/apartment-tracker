@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png'],
       manifest: {
         name: 'Apartment Cost Tracker',
@@ -36,49 +36,30 @@ export default defineConfig({
         ]
       },
       workbox: {
-        skipWaiting: true,
-        clientsClaim: true,
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
-        // Don't cache the index.html - always fetch fresh
         navigateFallbackDenylist: [/^\/api/],
-        // Aggressive cache busting
-        disableDevLogs: true,
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            // Cache Firebase API calls with NetworkFirst strategy
             urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*$/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'firestore-data',
-              networkTimeoutSeconds: 3,
+              networkTimeoutSeconds: 5,
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 5 * 60 // 5 minutes
+                maxEntries: 100,
+                maxAgeSeconds: 24 * 60 * 60 // 24 hours
               },
               cacheableResponse: {
                 statuses: [0, 200]
-              }
-            }
-          },
-          {
-            // Always fetch app shell files from network first
-            urlPattern: /^https?:\/\/[^/]+\/(index\.html|src\/.*\.(js|jsx|css))$/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'app-shell',
-              networkTimeoutSeconds: 3,
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 // 1 minute only
               }
             }
           }
         ]
       },
       devOptions: {
-        enabled: true,
-        type: 'module'
+        enabled: false
       }
     })
   ]

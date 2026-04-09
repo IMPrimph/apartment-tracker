@@ -4,12 +4,23 @@ import { registerSW } from 'virtual:pwa-register'
 import App from './App.jsx'
 import './index.css'
 
+let isUpdating = false
+
 const updateSW = registerSW({
   immediate: true,
   onNeedRefresh() {
+    // Prevent multiple prompts
+    if (isUpdating) return
+    isUpdating = true
+
     // Automatically reload when new version is available
-    if (window.confirm('New version available! Reload to update?')) {
-      updateSW(true)
+    const shouldUpdate = window.confirm('New version available! Reload to update?')
+    if (shouldUpdate) {
+      updateSW(true).then(() => {
+        window.location.reload()
+      })
+    } else {
+      isUpdating = false
     }
   },
   onOfflineReady() {
@@ -17,10 +28,12 @@ const updateSW = registerSW({
   },
   onRegisteredSW(swUrl, registration) {
     if (registration) {
-      // Check for updates every 60 seconds instead of 1 hour
+      // Check for updates every 5 minutes
       setInterval(() => {
-        registration.update().catch(() => {})
-      }, 60 * 1000)
+        if (!isUpdating) {
+          registration.update().catch(() => {})
+        }
+      }, 5 * 60 * 1000)
     }
   }
 })

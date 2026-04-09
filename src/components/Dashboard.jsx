@@ -1,99 +1,86 @@
-function Dashboard({ expenses, emiPayments = [], miscellaneousExpenses = [] }) {
-  const calculateTotals = () => {
-    const totals = {
-      miscellaneous: 0,
-      bankLoan: 0,
-      cash: 0,
-      emi: 0,
-      total: 0
+import { useMemo } from 'react'
+import { APARTMENT_TARGET, BANK_LOAN_CAP } from '../utils/constants'
+import { formatCurrency } from '../utils/formatCurrency'
+
+function Dashboard({ expenses, emiPayments, miscExpenses }) {
+  const { bankLoan, cash, totalInvested, progress, remaining, bankLoanRemaining, emiTotal, miscTotal } = useMemo(() => {
+    const bl = expenses
+      .filter(e => e.type === 'bankLoan')
+      .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0)
+
+    const c = expenses
+      .filter(e => e.type === 'cash')
+      .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0)
+
+    const total = bl + c
+
+    return {
+      bankLoan: bl,
+      cash: c,
+      totalInvested: total,
+      progress: Math.min((total / APARTMENT_TARGET) * 100, 100),
+      remaining: Math.max(APARTMENT_TARGET - total, 0),
+      bankLoanRemaining: Math.max(BANK_LOAN_CAP - bl, 0),
+      emiTotal: emiPayments.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0),
+      miscTotal: miscExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0)
     }
-
-    expenses.forEach(expense => {
-      const amount = parseFloat(expense.amount) || 0
-      totals[expense.type] += amount
-      totals.total += amount
-    })
-
-    const emiTotal = emiPayments.reduce((sum, payment) => {
-      const amount = parseFloat(payment.amount) || 0
-      return sum + amount
-    }, 0)
-
-    const miscTotal = miscellaneousExpenses.reduce((sum, item) => {
-      const amount = parseFloat(item.amount) || 0
-      return sum + amount
-    }, 0)
-
-    return { ...totals, emi: emiTotal, miscellaneous: miscTotal }
-  }
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(amount)
-  }
-
-  const totals = calculateTotals()
-  const apartmentCost = 10000000 // 1 crore
-  const bankLoanCap = 7500000 // 75 lakhs
-  const projectRemaining = Math.max(apartmentCost - totals.total, 0)
-  const bankLoanRemaining = Math.max(bankLoanCap - totals.bankLoan, 0)
-  const progress = Math.min((totals.total / apartmentCost) * 100, 100)
+  }, [expenses, emiPayments, miscExpenses])
 
   return (
-    <section className="stats-section">
-      <div className="stats-grid stats-grid--wide">
-        <article className="stat-card stat-card--primary">
-          <span className="stat-card__eyebrow">Total Invested</span>
-          <h3 className="stat-card__value">{formatCurrency(totals.total)}</h3>
-          <span className="stat-card__meta">Target {formatCurrency(apartmentCost)}</span>
-          <div className="stat-progress">
-            <div className="stat-progress__bar">
-              <span style={{ width: `${progress}%` }} />
-            </div>
-            <span className="stat-progress__label">
-              Pending {formatCurrency(projectRemaining)} · {progress.toFixed(1)}% complete
-            </span>
+    <section className="dashboard">
+      <div className="dashboard__top">
+        <article className="hero-card">
+          <span className="hero-card__eyebrow">Apartment Progress</span>
+          <div className="hero-card__amount">
+            <span className="hero-card__value">{formatCurrency(totalInvested)}</span>
+            <span className="hero-card__target">/ {formatCurrency(APARTMENT_TARGET)}</span>
+          </div>
+          <div className="hero-card__bar">
+            <div className="hero-card__bar-fill" style={{ width: `${progress}%` }} />
+          </div>
+          <div className="hero-card__meta">
+            <span>{progress.toFixed(1)}% complete</span>
+            <span>{formatCurrency(remaining)} remaining</span>
           </div>
         </article>
 
-        <article className="stat-card">
-          <span className="stat-card__eyebrow">Bank Loan</span>
-          <h3 className="stat-card__value" style={{ color: '#3b82f6' }}>
-            {formatCurrency(totals.bankLoan)}
-          </h3>
-          <span className="stat-card__meta">
-            Disbursed amount of {formatCurrency(bankLoanCap)}
-          </span>
-          <span className="stat-card__meta">
-            Pending {formatCurrency(bankLoanRemaining)}
-          </span>
-        </article>
+        <div className="dashboard__side">
+          <article className="stat-card stat-card--blue">
+            <span className="stat-card__eyebrow">Bank Loan</span>
+            <h3 className="stat-card__value">{formatCurrency(bankLoan)}</h3>
+            <span className="stat-card__meta">
+              {formatCurrency(bankLoanRemaining)} remaining of {formatCurrency(BANK_LOAN_CAP)}
+            </span>
+            <div className="stat-card__bar">
+              <div className="stat-card__bar-fill stat-card__bar-fill--blue" style={{ width: `${Math.min((bankLoan / BANK_LOAN_CAP) * 100, 100)}%` }} />
+            </div>
+          </article>
+          <article className="stat-card stat-card--green">
+            <span className="stat-card__eyebrow">Cash Paid</span>
+            <h3 className="stat-card__value">{formatCurrency(cash)}</h3>
+            <span className="stat-card__meta">Out of pocket payments</span>
+          </article>
+        </div>
+      </div>
 
-        <article className="stat-card">
-          <span className="stat-card__eyebrow">Cash Payments</span>
-          <h3 className="stat-card__value" style={{ color: '#10b981' }}>
-            {formatCurrency(totals.cash)}
-          </h3>
-          <span className="stat-card__meta">Out of pocket</span>
+      <div className="dashboard__bottom">
+        <article className="stat-card stat-card--compact">
+          <div className="stat-card--compact__inner">
+            <div>
+              <span className="stat-card__eyebrow">EMI Paid</span>
+              <h3 className="stat-card__value">{formatCurrency(emiTotal)}</h3>
+            </div>
+            <div className="stat-card__icon stat-card__icon--amber">📅</div>
+          </div>
         </article>
-
-        <article className="stat-card">
-          <span className="stat-card__eyebrow">EMI Paid</span>
-          <h3 className="stat-card__value" style={{ color: '#f59e0b' }}>
-            {formatCurrency(totals.emi)}
-          </h3>
-          <span className="stat-card__meta">Monthly repayments</span>
-        </article>
-
-        <article className="stat-card">
-          <span className="stat-card__eyebrow">Miscellaneous</span>
-          <h3 className="stat-card__value" style={{ color: '#8b5cf6' }}>
-            {formatCurrency(totals.miscellaneous)}
-          </h3>
-          <span className="stat-card__meta">Extra costs</span>
+        <article className="stat-card stat-card--compact">
+          <div className="stat-card--compact__inner">
+            <div>
+              <span className="stat-card__eyebrow">Miscellaneous</span>
+              <h3 className="stat-card__value">{formatCurrency(miscTotal)}</h3>
+            </div>
+            <div className="stat-card__icon stat-card__icon--purple">🔧</div>
+          </div>
         </article>
       </div>
     </section>

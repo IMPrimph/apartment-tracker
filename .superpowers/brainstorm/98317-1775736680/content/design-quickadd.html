@@ -1,0 +1,93 @@
+<h2>Section 2: Quick Add Form</h2>
+<p class="subtitle">Always visible below the dashboard — no modal, no extra taps</p>
+
+<div class="mockup">
+  <div class="mockup-header">Quick Add — Desktop View</div>
+  <div class="mockup-body" style="padding: 2rem; background: #f8fafc; font-family: system-ui, -apple-system, sans-serif;">
+
+    <div style="background: white; border-radius: 16px; padding: 1.75rem; border: 1px solid #e2e8f0;">
+      <div style="font-size: 0.85rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Add Payment</div>
+
+      <!-- Type chips -->
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
+        <div style="padding: 0.5rem 1rem; border-radius: 99px; font-size: 0.8rem; font-weight: 500; cursor: pointer; background: #1e293b; color: white;">EMI</div>
+        <div style="padding: 0.5rem 1rem; border-radius: 99px; font-size: 0.8rem; font-weight: 500; cursor: pointer; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">Bank Loan</div>
+        <div style="padding: 0.5rem 1rem; border-radius: 99px; font-size: 0.8rem; font-weight: 500; cursor: pointer; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">Cash</div>
+        <div style="padding: 0.5rem 1rem; border-radius: 99px; font-size: 0.8rem; font-weight: 500; cursor: pointer; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">Miscellaneous</div>
+      </div>
+
+      <!-- Amount + Save row -->
+      <div style="display: flex; gap: 0.75rem; align-items: stretch;">
+        <div style="flex: 1; position: relative;">
+          <div style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.95rem; font-weight: 500;">₹</div>
+          <input type="text" value="48,267" style="width: 100%; box-sizing: border-box; padding: 0.85rem 1rem 0.85rem 2rem; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 1.1rem; font-weight: 600; color: #1e293b; outline: none; font-family: inherit;" />
+        </div>
+        <button style="padding: 0.85rem 2rem; background: #1e293b; color: white; border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; white-space: nowrap;">Save</button>
+      </div>
+
+      <!-- Helper text -->
+      <div style="margin-top: 0.6rem; font-size: 0.78rem; color: #94a3b8;">
+        Forty Eight Thousand Two Hundred Sixty Seven Rupees · Today, 09 Apr 2026
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 1.5rem;">
+  <h3>Key Behaviors</h3>
+  <ul style="color: #475569; line-height: 1.8; padding-left: 1.25rem;">
+    <li><strong>Type chips</strong> — tap to select. No dropdown. EMI defaults as selected since it's your most common entry.</li>
+    <li><strong>EMI pre-fill</strong> — when EMI is selected, the amount auto-fills with your last EMI amount. Just hit Save if it's the same. Change the number if it's different.</li>
+    <li><strong>Amount-to-words</strong> — shown below the input as a sanity check (existing feature, kept).</li>
+    <li><strong>Auto date</strong> — always today. No date picker. If you need to backdate, a small "change date" link appears on hover/tap.</li>
+    <li><strong>No description field</strong> — removed as discussed. Auto-generated label stored internally (e.g., "EMI Payment", "Bank Loan Payment").</li>
+    <li><strong>Keyboard shortcut</strong> — Cmd+K focuses the amount input directly.</li>
+    <li><strong>On save</strong> — dashboard numbers update immediately. A subtle confirmation toast appears briefly.</li>
+  </ul>
+</div>
+
+<div class="mockup" style="margin-top: 1.5rem;">
+  <div class="mockup-header">Quick Add — Mobile View</div>
+  <div class="mockup-body" style="padding: 1.5rem; background: #f8fafc; font-family: system-ui, -apple-system, sans-serif; max-width: 375px; margin: 0 auto;">
+
+    <div style="background: white; border-radius: 16px; padding: 1.25rem; border: 1px solid #e2e8f0;">
+      <div style="font-size: 0.85rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Add Payment</div>
+
+      <!-- Type chips - wrap on mobile -->
+      <div style="display: flex; gap: 0.4rem; margin-bottom: 1rem; flex-wrap: wrap;">
+        <div style="padding: 0.45rem 0.85rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500; background: #1e293b; color: white;">EMI</div>
+        <div style="padding: 0.45rem 0.85rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">Bank Loan</div>
+        <div style="padding: 0.45rem 0.85rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">Cash</div>
+        <div style="padding: 0.45rem 0.85rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">Misc</div>
+      </div>
+
+      <!-- Amount input full width -->
+      <div style="position: relative; margin-bottom: 0.75rem;">
+        <div style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.95rem; font-weight: 500;">₹</div>
+        <input type="text" value="48,267" style="width: 100%; box-sizing: border-box; padding: 0.85rem 1rem 0.85rem 2rem; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 1.1rem; font-weight: 600; color: #1e293b; outline: none; font-family: inherit;" />
+      </div>
+
+      <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 1rem;">
+        Forty Eight Thousand... · Today
+      </div>
+
+      <!-- Full width save button on mobile -->
+      <button style="width: 100%; padding: 0.85rem; background: #1e293b; color: white; border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="options" style="margin-top: 1.5rem;">
+  <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>Looks good, move on</h3>
+    </div>
+  </div>
+  <div class="option" data-choice="revise" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>I have feedback / changes</h3>
+    </div>
+  </div>
+</div>

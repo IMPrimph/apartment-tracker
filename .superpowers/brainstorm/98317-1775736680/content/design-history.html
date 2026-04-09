@@ -1,0 +1,143 @@
+<h2>Section 3: Transaction History</h2>
+<p class="subtitle">Tucked below the form — expandable, not dominant</p>
+
+<div class="mockup">
+  <div class="mockup-header">History — Collapsed (Default State)</div>
+  <div class="mockup-body" style="padding: 2rem; background: #f8fafc; font-family: system-ui, -apple-system, sans-serif;">
+
+    <!-- Collapsed history header -->
+    <div style="background: white; border-radius: 14px; padding: 1rem 1.5rem; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span style="font-size: 0.88rem; font-weight: 600; color: #1e293b;">Recent Transactions</span>
+        <span style="font-size: 0.72rem; background: #f1f5f9; color: #64748b; padding: 0.2rem 0.6rem; border-radius: 99px; font-weight: 500;">47 entries</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <span style="font-size: 0.78rem; color: #94a3b8;">Export</span>
+        <span style="color: #94a3b8; font-size: 0.75rem;">▼</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top: 1.5rem;">
+  <div class="mockup-header">History — Expanded</div>
+  <div class="mockup-body" style="padding: 2rem; background: #f8fafc; font-family: system-ui, -apple-system, sans-serif;">
+
+    <!-- Expanded history -->
+    <div style="background: white; border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden;">
+
+      <!-- Header -->
+      <div style="padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; cursor: pointer;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 0.88rem; font-weight: 600; color: #1e293b;">Recent Transactions</span>
+          <span style="font-size: 0.72rem; background: #f1f5f9; color: #64748b; padding: 0.2rem 0.6rem; border-radius: 99px; font-weight: 500;">47 entries</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <span style="font-size: 0.78rem; color: #3b82f6; cursor: pointer;">Export</span>
+          <span style="color: #94a3b8; font-size: 0.75rem;">▲</span>
+        </div>
+      </div>
+
+      <!-- Filter chips -->
+      <div style="padding: 0.75rem 1.5rem; display: flex; gap: 0.4rem; border-bottom: 1px solid #f1f5f9; flex-wrap: wrap;">
+        <div style="padding: 0.3rem 0.75rem; border-radius: 99px; font-size: 0.72rem; font-weight: 500; background: #1e293b; color: white;">All</div>
+        <div style="padding: 0.3rem 0.75rem; border-radius: 99px; font-size: 0.72rem; font-weight: 500; background: #f1f5f9; color: #64748b;">Bank Loan</div>
+        <div style="padding: 0.3rem 0.75rem; border-radius: 99px; font-size: 0.72rem; font-weight: 500; background: #f1f5f9; color: #64748b;">Cash</div>
+        <div style="padding: 0.3rem 0.75rem; border-radius: 99px; font-size: 0.72rem; font-weight: 500; background: #f1f5f9; color: #64748b;">EMI</div>
+        <div style="padding: 0.3rem 0.75rem; border-radius: 99px; font-size: 0.72rem; font-weight: 500; background: #f1f5f9; color: #64748b;">Misc</div>
+      </div>
+
+      <!-- Transaction rows -->
+      <div>
+        <!-- Month group -->
+        <div style="padding: 0.5rem 1.5rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 600; background: #fafbfc;">October 2025</div>
+
+        <!-- Row 1 -->
+        <div style="padding: 0.85rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f8fafc;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 6px; height: 6px; border-radius: 50%; background: #3b82f6;"></div>
+            <div>
+              <div style="font-size: 0.82rem; font-weight: 500; color: #1e293b;">Bank Loan</div>
+              <div style="font-size: 0.7rem; color: #94a3b8;">08 Oct 2025</div>
+            </div>
+          </div>
+          <div style="font-size: 0.88rem; font-weight: 600; color: #1e293b;">₹3,12,210</div>
+        </div>
+
+        <!-- Row 2 -->
+        <div style="padding: 0.85rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f8fafc;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 6px; height: 6px; border-radius: 50%; background: #f59e0b;"></div>
+            <div>
+              <div style="font-size: 0.82rem; font-weight: 500; color: #1e293b;">EMI Payment</div>
+              <div style="font-size: 0.7rem; color: #94a3b8;">05 Oct 2025</div>
+            </div>
+          </div>
+          <div style="font-size: 0.88rem; font-weight: 600; color: #1e293b;">₹48,267</div>
+        </div>
+
+        <!-- Month group -->
+        <div style="padding: 0.5rem 1.5rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 600; background: #fafbfc;">August 2025</div>
+
+        <!-- Row 3 -->
+        <div style="padding: 0.85rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f8fafc;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 6px; height: 6px; border-radius: 50%; background: #f59e0b;"></div>
+            <div>
+              <div style="font-size: 0.82rem; font-weight: 500; color: #1e293b;">EMI Payment</div>
+              <div style="font-size: 0.7rem; color: #94a3b8;">21 Aug 2025</div>
+            </div>
+          </div>
+          <div style="font-size: 0.88rem; font-weight: 600; color: #1e293b;">₹7,41,687</div>
+        </div>
+
+        <!-- Row 4 -->
+        <div style="padding: 0.85rem 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></div>
+            <div>
+              <div style="font-size: 0.82rem; font-weight: 500; color: #1e293b;">Cash Payment</div>
+              <div style="font-size: 0.7rem; color: #94a3b8;">15 Aug 2025</div>
+            </div>
+          </div>
+          <div style="font-size: 0.88rem; font-weight: 600; color: #1e293b;">₹5,00,000</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit/Delete note -->
+    <div style="margin-top: 1rem; padding: 0.85rem 1.25rem; background: #f8fafc; border-radius: 10px; border: 1px dashed #e2e8f0;">
+      <p style="font-size: 0.78rem; color: #94a3b8; margin: 0; line-height: 1.5;">
+        <strong style="color: #64748b;">Tap any row</strong> to edit or delete. No inline buttons cluttering every row — actions appear only when you need them.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 1.5rem;">
+  <h3>Design Decisions</h3>
+  <ul style="color: #475569; line-height: 1.8; padding-left: 1.25rem;">
+    <li><strong>Collapsed by default</strong> — you rarely need this. One click to expand.</li>
+    <li><strong>Grouped by month</strong> — natural time-based grouping instead of by type (since Dashboard already shows type totals).</li>
+    <li><strong>Filter chips</strong> — quick type filtering when expanded. "All" selected by default.</li>
+    <li><strong>No inline Edit/Delete buttons</strong> — tap a row to open edit mode (reuses the quick-add form with pre-filled values + delete option). Keeps rows clean.</li>
+    <li><strong>Color-coded dots</strong> — blue (bank loan), green (cash), amber (EMI), purple (misc). Quick visual scan.</li>
+    <li><strong>Export lives here</strong> — moved from the header. It's a history-related action, not a primary one.</li>
+    <li><strong>Auto-generated labels</strong> — "Bank Loan", "EMI Payment", "Cash Payment" based on type. No user-entered description needed.</li>
+  </ul>
+</div>
+
+<div class="options" style="margin-top: 1.5rem;">
+  <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>Looks good, move on</h3>
+    </div>
+  </div>
+  <div class="option" data-choice="revise" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>I have feedback / changes</h3>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+<h2>Redesign Approach</h2>
+<p class="subtitle">Three different ways to restructure the app around your workflow: glance → add → (occasionally) browse history</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Single-Page Dashboard + Inline Add</h3>
+      <p>Everything on one screen. A bold progress section at top with the 3 key numbers. Below it, a persistent inline quick-add form (type chips + amount + save). History tucked behind a "View transactions" expandable at the bottom.</p>
+      <br>
+      <p><strong>Pros:</strong> Zero navigation. Open app → see progress → add cost → done. Fastest possible workflow.</p>
+      <p><strong>Cons:</strong> Can feel dense on mobile if not carefully designed. History access requires scrolling past the form.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Dashboard + Bottom Sheet Add</h3>
+      <p>Clean dashboard-only main view with the 3 key numbers as the entire screen. A prominent floating button opens a bottom sheet (slides up from bottom) for quick-add. History accessible via a small "History" link/tab.</p>
+      <br>
+      <p><strong>Pros:</strong> Cleanest glance view — dashboard is completely uncluttered. Bottom sheet feels native on mobile. Clear separation of concerns.</p>
+      <p><strong>Cons:</strong> One extra tap to start adding (tap FAB → sheet opens). Slightly more complex interaction model.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Tab-Based: Dashboard | Add | History</h3>
+      <p>Three tabs at the bottom. "Dashboard" tab shows progress. "Add" tab is a dedicated quick-add screen. "History" tab shows all transactions. Each tab is focused on one task.</p>
+      <br>
+      <p><strong>Pros:</strong> Very clear mental model — each task has its own space. Works well on mobile with bottom tab navigation.</p>
+      <p><strong>Cons:</strong> Two taps to add (open app → tap Add tab → fill form). Dashboard and add are always separate, can't glance and add in one flow. Over-engineered for a personal tool with 3 features.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1.25rem; background: rgba(59,130,246,0.06); border-radius: 12px; border-left: 4px solid #3b82f6;">
+  <h3 style="margin: 0 0 0.5rem 0; color: #3b82f6;">💡 My Recommendation: Option A</h3>
+  <p style="margin: 0; color: #475569; line-height: 1.6;">For a personal tool where your workflow is literally "open → glance → add → close", having everything on one screen with zero navigation is the fastest path. The inline form means you can see your progress update in real-time as you add costs. No modals, no tabs, no extra taps. Option B is a close second if you want a cleaner separation, but the extra tap adds friction to your most common action.</p>
+</div>

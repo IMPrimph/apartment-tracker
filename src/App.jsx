@@ -1,44 +1,29 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import Dashboard from './components/Dashboard'
-import ExpenseForm from './components/ExpenseForm'
-import ExpenseList from './components/ExpenseList'
+import QuickAdd from './components/QuickAdd'
+import History from './components/History'
 import AuthGate from './components/AuthGate'
-import { exportExpensesToExcel } from './utils/exportToExcel'
+import { formatCurrency } from './utils/formatCurrency'
 import { initializeFirebase, addExpense, getExpenses, updateExpense, deleteExpense } from './firebase'
 
 function TrackerApp() {
   const [expenses, setExpenses] = useState([])
-  const [showForm, setShowForm] = useState(false)
-  const [editingExpense, setEditingExpense] = useState(null)
   const [loading, setLoading] = useState(true)
   const [notification, setNotification] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [editingExpense, setEditingExpense] = useState(null)
+  const notificationTimer = useRef(null)
 
   useEffect(() => {
     initializeFirebase()
     loadExpenses()
   }, [])
 
+  // Cleanup notification timer on unmount
   useEffect(() => {
-    const handleKeydown = (e) => {
-      // Cmd/Ctrl + K to open add expense form
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault()
-        if (!showForm) {
-          setEditingExpense(null)
-          setShowForm(true)
-        }
-      }
-      // Escape to close form
-      if (e.key === 'Escape' && showForm) {
-        setShowForm(false)
-        setEditingExpense(null)
-      }
+    return () => {
+      if (notificationTimer.current) clearTimeout(notificationTimer.current)
     }
-
-    document.addEventListener('keydown', handleKeydown)
-    return () => document.removeEventListener('keydown', handleKeydown)
-  }, [showForm])
+  }, [])
 
   const loadExpenses = async () => {
     try {
@@ -51,242 +36,125 @@ function TrackerApp() {
     }
   }
 
-  const showNotification = (message, type = 'success') => {
+  const showNotification = useCallback((message, type = 'success') => {
+    if (notificationTimer.current) clearTimeout(notificationTimer.current)
     setNotification({ message, type })
-    setTimeout(() => setNotification(null), 3000)
-  }
+    notificationTimer.current = setTimeout(() => setNotification(null), 3000)
+  }, [])
 
-  const handleAddExpense = async (expenseData) => {
-    try {
-      await addExpense(expenseData)
-      await loadExpenses()
-      setShowForm(false)
-      showNotification('Expense added successfully!')
-    } catch (error) {
-      console.error('Error adding expense:', error)
-      showNotification('Failed to add expense. Please try again.', 'error')
-    }
-  }
-
-  const handleUpdateExpense = async (id, expenseData) => {
-    try {
-      await updateExpense(id, expenseData)
-      await loadExpenses()
+  const handleSubmit = async (data) => {
+    if (editingExpense) {
+      await updateExpense(editingExpense.id, data)
       setEditingExpense(null)
-      setShowForm(false)
-      showNotification('Expense updated successfully!')
-    } catch (error) {
-      console.error('Error updating expense:', error)
-      showNotification('Failed to update expense. Please try again.', 'error')
+      showNotification('Payment updated')
+    } else {
+      await addExpense(data)
+      showNotification('Payment added')
     }
+    await loadExpenses()
   }
 
-  const handleDeleteExpense = async (id) => {
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this transaction?')) return
     try {
       await deleteExpense(id)
       await loadExpenses()
-      showNotification('Expense deleted successfully!')
+      setEditingExpense(null)
+      showNotification('Transaction deleted')
     } catch (error) {
       console.error('Error deleting expense:', error)
-      showNotification('Failed to delete expense. Please try again.', 'error')
+      showNotification('Failed to delete. Try again.', 'error')
     }
   }
 
-  const handleEditExpense = (expense) => {
+  const handleEdit = useCallback((expense) => {
     setEditingExpense(expense)
-    setShowForm(true)
-  }
+  }, [])
 
-  const handleExportExpenses = () => {
+  const handleCancelEdit = useCallback(() => {
+    setEditingExpense(null)
+  }, [])
+
+  const handleExport = useCallback(async () => {
     if (expenses.length === 0) {
-      showNotification('No expenses to export yet.', 'error')
+      showNotification('No expenses to export.', 'error')
       return
     }
-
     try {
+      const { exportExpensesToExcel } = await import('./utils/exportToExcel')
       exportExpensesToExcel(expenses)
-      showNotification('Export created successfully.')
+      showNotification('Export created')
     } catch (error) {
-      console.error('Error exporting expenses:', error)
-      showNotification('Failed to export Excel. Please try again.', 'error')
+      console.error('Export error:', error)
+      showNotification('Failed to export.', 'error')
     }
-  }
+  }, [expenses, showNotification])
+
+  // All hooks must be above any early returns — Rules of Hooks
+  const costExpenses = useMemo(() => expenses.filter(e => e.type === 'bankLoan' || e.type === 'cash'), [expenses])
+  const emiPayments = useMemo(() => expenses.filter(e => e.type === 'emi'), [expenses])
+  const miscExpenses = useMemo(() => expenses.filter(e => e.type === 'miscellaneous'), [expenses])
+
+  const lastEmiAmount = useMemo(() => {
+    const sorted = [...emiPayments].sort((a, b) => {
+      const da = a.date ? new Date(a.date + 'T00:00:00') : new Date(0)
+      const db = b.date ? new Date(b.date + 'T00:00:00') : new Date(0)
+      return db - da
+    })
+    return sorted.length > 0 ? (parseFloat(sorted[0].amount) || 0) : 0
+  }, [emiPayments])
 
   if (loading) {
     return (
       <div className="app-shell">
         <div className="container">
           <div className="loading-state">
-            <div className="loading-spinner"></div>
-            <h2>Loading Your Financial Data</h2>
-            <p>Please wait while we fetch your apartment cost tracker</p>
+            <div className="loading-spinner" />
+            <p>Loading...</p>
           </div>
         </div>
       </div>
     )
   }
 
-  const filterExpensesBySearch = (expenseList) => {
-    if (!searchTerm.trim()) return expenseList
-    return expenseList.filter(expense =>
-      expense.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      expense.amount?.toString().includes(searchTerm)
-    )
-  }
-
-  const emiPayments = filterExpensesBySearch(expenses.filter(expense => expense.type === 'emi'))
-  const miscellaneousExpenses = filterExpensesBySearch(expenses.filter(expense => expense.type === 'miscellaneous'))
-  const costExpenses = filterExpensesBySearch(expenses.filter(expense => expense.type !== 'emi' && expense.type !== 'miscellaneous'))
-
   return (
     <div className="app-shell">
       <div className="container">
-        <header className="page-header">
-          <div className="page-header__content">
-            <h1>Apartment Cost Tracker.</h1>
-          </div>
-          <div className="page-header__actions">
-            <button
-              className="btn btn-secondary"
-              onClick={handleExportExpenses}
-            >
-              Export to Excel
-            </button>
-            <button
-              className="btn btn-primary"
-              onClick={() => {
-                setEditingExpense(null)
-                setShowForm(true)
-              }}
-            >
-              + Add Expense
-            </button>
-          </div>
-        </header>
-
         <Dashboard
-          expenses={expenses.filter(expense => expense.type !== 'emi' && expense.type !== 'miscellaneous')}
-          emiPayments={expenses.filter(expense => expense.type === 'emi')}
-          miscellaneousExpenses={expenses.filter(expense => expense.type === 'miscellaneous')}
+          expenses={costExpenses}
+          emiPayments={emiPayments}
+          miscExpenses={miscExpenses}
         />
 
-        {expenses.length > 0 && (
-          <div className="search-section">
-            <div className="search-input-container">
-              <input
-                type="text"
-                placeholder="Search expenses by description or amount..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="search-clear"
-                  aria-label="Clear search"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-            {searchTerm && (
-              <p className="search-results">
-                Found {costExpenses.length + emiPayments.length + miscellaneousExpenses.length} results for "{searchTerm}"
-              </p>
-            )}
+        {editingExpense && (
+          <div className="edit-bar">
+            <span>Editing: {editingExpense.description || editingExpense.type} — {formatCurrency(editingExpense.amount)}</span>
+            <button type="button" className="edit-bar__delete" onClick={() => handleDelete(editingExpense.id)}>
+              Delete
+            </button>
           </div>
         )}
 
-        <section className="section">
-          <div className="section__headline">
-            <div>
-              <h2>Expense Ledger</h2>
-              <p>Dig into individual transactions across every payment bucket.</p>
-            </div>
-          </div>
-
-          <ExpenseList
-            expenses={costExpenses}
-            onEdit={handleEditExpense}
-            onDelete={handleDeleteExpense}
-            emptyTitle="No expenses yet"
-            emptyBody="Start logging construction and loan disbursements to populate your dashboard."
-          />
-        </section>
-
-        <section className="section">
-          <div className="section__headline">
-            <div>
-              <h2>Miscellaneous Costs</h2>
-              <p>One-off charges like registration, furniture, or services stay outside the apartment valuation.</p>
-            </div>
-          </div>
-
-          <ExpenseList
-            expenses={miscellaneousExpenses}
-            onEdit={handleEditExpense}
-            onDelete={handleDeleteExpense}
-            forceLabel="Miscellaneous"
-            forceBadgeColor="#6f42c1"
-            forceAccent="rgba(111, 66, 193, 0.16)"
-            emptyTitle="No miscellaneous entries yet"
-            emptyBody="Log any indirect spends related to the move—fittings, legal fees, or other extras."
-          />
-        </section>
-
-        <section className="section">
-          <div className="section__headline">
-            <div>
-              <h2>EMI Payments</h2>
-              <p>Track monthly repayments separately from construction and other costs.</p>
-            </div>
-          </div>
-
-          <ExpenseList
-            expenses={emiPayments}
-            onEdit={handleEditExpense}
-            onDelete={handleDeleteExpense}
-            forceLabel="EMI Payment"
-            forceBadgeColor="#ff8c42"
-            forceAccent="rgba(255, 140, 66, 0.18)"
-            emptyTitle="No EMI payments yet"
-            emptyBody="Log each month’s EMI so you can compare payouts against bank schedules."
-          />
-        </section>
-      </div>
-
-      <button
-        className="floating-add"
-        type="button"
-        aria-label="Add new expense"
-        onClick={() => {
-          setEditingExpense(null)
-          setShowForm(true)
-        }}
-      >
-        +
-      </button>
-
-      {showForm && (
-        <ExpenseForm
-          expense={editingExpense}
-          onSubmit={editingExpense ?
-            (data) => handleUpdateExpense(editingExpense.id, data) :
-            handleAddExpense
-          }
-          onCancel={() => {
-            setShowForm(false)
-            setEditingExpense(null)
-          }}
+        <QuickAdd
+          onSubmit={handleSubmit}
+          editingExpense={editingExpense}
+          onCancelEdit={handleCancelEdit}
+          lastEmiAmount={lastEmiAmount}
         />
-      )}
+
+        <History
+          expenses={expenses}
+          allExpenses={expenses}
+          onEdit={handleEdit}
+          onExport={handleExport}
+        />
+      </div>
 
       {notification && (
         <div className={`notification notification--${notification.type}`}>
           <div className="notification__content">
             <span className="notification__message">{notification.message}</span>
-            <button 
+            <button
               className="notification__close"
               onClick={() => setNotification(null)}
               aria-label="Close notification"

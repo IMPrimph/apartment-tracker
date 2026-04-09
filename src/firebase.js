@@ -15,6 +15,7 @@ let app
 let db
 
 export const initializeFirebase = () => {
+  if (app) return // Already initialized (StrictMode double-mount safe)
   app = initializeApp(firebaseConfig)
   db = getFirestore(app)
 }

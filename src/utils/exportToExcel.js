@@ -1,13 +1,6 @@
 import * as XLSX from 'xlsx'
-
-const APARTMENT_TARGET = 10000000 // ₹1 crore
-const BANK_LOAN_CAP = 7500000 // ₹75 lakh
-
-const INR_FORMATTER = new Intl.NumberFormat('en-IN', {
-  style: 'currency',
-  currency: 'INR',
-  maximumFractionDigits: 0
-})
+import { APARTMENT_TARGET, BANK_LOAN_CAP } from './constants'
+import { formatCurrency } from './formatCurrency'
 
 const toNumber = (value) => {
   const parsed = Number(value)
@@ -39,8 +32,8 @@ const buildSummarySheet = (totals, counts) => {
 
   const summaryData = [
     ['Metric', 'Amount (INR)', 'Details'],
-    ['Total Invested (Bank + Cash)', invested, `Pending ${INR_FORMATTER.format(overallPending)}`],
-    ['Bank Loan Disbursed', totals.bankLoan, `Cap ${INR_FORMATTER.format(BANK_LOAN_CAP)}, Pending ${INR_FORMATTER.format(bankPending)}`],
+    ['Total Invested (Bank + Cash)', invested, `Pending ${formatCurrency(overallPending)}`],
+    ['Bank Loan Disbursed', totals.bankLoan, `Cap ${formatCurrency(BANK_LOAN_CAP)}, Pending ${formatCurrency(bankPending)}`],
     ['Cash Payments', totals.cash, 'Out of pocket'],
     ['Miscellaneous Costs', totals.miscellaneous, 'Outside valuation'],
     ['EMI Paid', totals.emi, 'Lifetime EMI payouts'],
