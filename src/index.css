@@ -54,8 +54,48 @@ body {
 }
 
 /* ========== LAYOUT ========== */
-.app-shell { min-height: 100vh; padding: 32px 0 80px; }
+.app-shell { min-height: 100vh; padding: 18px 0 80px; }
 .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+.app-header {
+  position: sticky;
+  top: 12px;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 16px;
+  padding: 0.7rem 0.8rem 0.7rem 1rem;
+  border: 1px solid rgba(228, 231, 236, 0.88);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(14px);
+}
+
+.app-header > div { min-width: 0; }
+.app-header strong,
+.app-header span { display: block; }
+.app-header strong { font-size: 0.88rem; }
+.app-header > div > span { color: var(--text-muted); font-size: 0.68rem; font-weight: 500; }
+.app-header button {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.62rem 0.9rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--text);
+  color: white;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.app-header button > span { font-size: 1rem; line-height: 1; }
+.app-header button:hover { background: #253047; }
 
 /* ========== LOADING ========== */
 .loading-state {
@@ -284,24 +324,263 @@ body {
   border: 1px solid var(--purple-border);
 }
 
+/* ========== HOME LOAN INSIGHTS ========== */
+.loan-insights {
+  margin-bottom: 24px;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.loan-insights__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.loan-insights__eyebrow {
+  display: block;
+  color: var(--accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+
+.loan-insights__header h2 {
+  font-size: 1.15rem;
+  letter-spacing: -0.2px;
+}
+
+.loan-insights__header p,
+.loan-breakdown__header p {
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.loan-insights__settings-button,
+.loan-breakdown__header button,
+.loan-settings__rates-header button,
+.loan-settings__remove {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.loan-insights__settings-button:hover,
+.loan-breakdown__header button:hover,
+.loan-settings__rates-header button:hover { border-color: var(--accent); color: var(--accent); }
+
+.loan-insights__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.loan-insights__metrics article {
+  padding: 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.loan-insights__metrics span,
+.loan-insights__metrics small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.loan-insights__metrics strong {
+  display: block;
+  margin: 0.35rem 0 0.2rem;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+.loan-insights__metric--green strong { color: #047857; }
+.loan-insights__metric--blue strong { color: #1e40af; }
+
+.loan-insights__details-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.85rem;
+  padding: 0.7rem 0.2rem 0.1rem;
+  border: 0;
+  border-top: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.loan-insights__details-toggle:hover { color: var(--accent); }
+.loan-insights__details-chevron { font-size: 1.1rem; transition: transform 0.2s ease; }
+.loan-insights__details-chevron--open { transform: rotate(180deg); }
+.loan-insights__details { animation: detailsReveal 0.18s ease; }
+
+@keyframes detailsReveal {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.loan-comparison {
+  margin-top: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--green-border);
+  border-radius: var(--radius-md);
+  background: var(--green-bg);
+}
+
+.loan-comparison__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.35rem 0;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.loan-comparison__row div span,
+.loan-comparison__row div strong { display: block; }
+.loan-comparison__row div strong { margin-top: 0.1rem; color: #047857; font-size: 0.9rem; }
+.loan-comparison__row--muted { border-top: 1px solid var(--green-border); margin-top: 0.4rem; padding-top: 0.75rem; }
+.loan-comparison__row--muted div strong { color: var(--text); }
+.loan-comparison > p { margin-top: 0.65rem; color: #047857; font-size: 0.72rem; font-weight: 600; }
+
+.loan-breakdown { margin-top: 1.25rem; border-top: 1px solid var(--border-light); padding-top: 1.1rem; }
+.loan-breakdown__header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.75rem; }
+.loan-breakdown__header h3 { font-size: 0.9rem; }
+.loan-breakdown__table-wrap { overflow-x: auto; }
+.loan-breakdown table { width: 100%; border-collapse: collapse; font-size: 0.76rem; }
+.loan-breakdown th { color: var(--text-muted); font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.7px; text-align: right; padding: 0.55rem 0.65rem; border-bottom: 1px solid var(--border); }
+.loan-breakdown th:first-child,
+.loan-breakdown td:first-child { text-align: left; }
+.loan-breakdown td { text-align: right; padding: 0.65rem; border-bottom: 1px solid var(--border-light); font-weight: 600; }
+.loan-breakdown__extra { color: #047857; }
+.loan-insights__disclaimer { margin-top: 0.85rem; color: var(--text-muted); font-size: 0.66rem; }
+
+.loan-settings {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-md);
+  background: var(--blue-bg);
+}
+
+.loan-settings__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.8rem; }
+.loan-settings label > span,
+.loan-settings__rates-header span { display: block; color: var(--text-secondary); font-size: 0.68rem; font-weight: 600; margin-bottom: 0.35rem; }
+.loan-settings input {
+  width: 100%;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  outline: none;
+}
+.loan-settings input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(79, 110, 247, 0.1); }
+.loan-settings__money,
+.loan-settings__suffix { position: relative; display: flex; align-items: center; }
+.loan-settings__money > span { position: absolute; left: 0.7rem; color: var(--text-muted); font-size: 0.78rem; z-index: 1; }
+.loan-settings__money input { padding-left: 1.5rem; }
+.loan-settings__suffix > span { position: absolute; right: 0.7rem; color: var(--text-muted); font-size: 0.68rem; pointer-events: none; }
+.loan-settings__suffix input { padding-right: 3.5rem; }
+.loan-settings__rates { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--blue-border); }
+.loan-settings__rates-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.65rem; }
+.loan-settings__rates-header strong { display: block; font-size: 0.78rem; }
+.loan-settings__rate-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.55rem; margin-top: 0.5rem; }
+.loan-settings__remove { color: var(--danger); }
+.loan-settings__remove:disabled { opacity: 0.35; cursor: not-allowed; }
+.loan-settings__note { margin-top: 0.75rem; color: var(--text-muted); font-size: 0.68rem; }
+.loan-settings__error { margin-top: 0.6rem; color: var(--danger); font-size: 0.72rem; font-weight: 600; }
+.loan-settings__save { margin-top: 0.8rem; padding: 0.7rem 1rem; border: none; border-radius: var(--radius-sm); background: var(--accent); color: white; font-family: inherit; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+.loan-settings__save:disabled { opacity: 0.5; }
+
 /* ========== QUICK ADD ========== */
-.quick-add { margin-bottom: 24px; }
+.quick-add { margin-bottom: 24px; scroll-margin-top: 88px; }
 
 .quick-add__form {
   background: var(--surface);
   border-radius: var(--radius-lg);
   padding: 1.5rem 1.75rem;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(79, 110, 247, 0.22);
+  box-shadow: 0 6px 22px rgba(79, 110, 247, 0.08);
 }
 
-.quick-add__header { margin-bottom: 1rem; }
+.quick-add__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.quick-add__eyebrow {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: var(--accent);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
 
 .quick-add__title {
-  font-size: 0.88rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 800;
   color: var(--text);
 }
+
+.quick-add__last-payment {
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.quick-add__emi-mode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.quick-add__emi-mode > span { color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; }
+.quick-add__emi-mode > div { display: flex; gap: 0.35rem; flex-wrap: wrap; justify-content: flex-end; }
+.quick-add__classification { margin-top: 0.6rem; padding: 0.55rem 0.7rem; border-radius: var(--radius-sm); background: var(--blue-bg); color: #1e40af; font-size: 0.72rem; font-weight: 600; }
+.quick-add__classification--extra,
+.quick-add__classification--mixed { background: var(--green-bg); color: #047857; }
 
 /* ── Chips ── */
 .quick-add__chips, .history__filters {
@@ -444,6 +723,17 @@ body {
   font-size: 0.78rem;
   color: var(--danger);
   font-weight: 500;
+}
+
+.quick-add__duplicate-warning {
+  margin-top: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--amber-border);
+  border-radius: var(--radius-sm);
+  background: var(--amber-bg);
+  color: #92400e;
+  font-size: 0.72rem;
+  font-weight: 600;
 }
 
 .quick-add__words {
@@ -813,6 +1103,9 @@ body {
   font-weight: 500;
 }
 
+.history__emi-split { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.18rem; font-size: 0.64rem; color: var(--text-muted); font-weight: 600; }
+.history__emi-extra { color: #047857; }
+
 .history__row-amount {
   font-size: 0.9rem;
   font-weight: 700;
@@ -944,8 +1237,10 @@ body {
 
 /* ========== MOBILE ========== */
 @media (max-width: 768px) {
-  .app-shell { padding: 20px 0 56px; }
+  .app-shell { padding: 10px 0 56px; }
   .container { padding: 0 16px; }
+
+  .app-header { top: 8px; }
 
   .dashboard__top { flex-direction: column; }
   .dashboard__side { flex-direction: row; }
@@ -957,8 +1252,15 @@ body {
   .stat-card { padding: 1rem 1.25rem; }
   .stat-card__value { font-size: 1.2rem; }
 
+  .loan-insights { padding: 1.2rem; }
+  .loan-insights__metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .loan-settings__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
   .quick-add__form { padding: 1.25rem; }
+  .quick-add__header { align-items: center; }
   .quick-add__chips { gap: 0.4rem; }
+  .quick-add__emi-mode { align-items: flex-start; flex-direction: column; }
+  .quick-add__emi-mode > div { justify-content: flex-start; }
   .chip { padding: 0.45rem 0.9rem; font-size: 0.73rem; }
 
   .quick-add__row { flex-wrap: wrap; }
@@ -981,6 +1283,10 @@ body {
 }
 
 @media (max-width: 480px) {
+  .app-header { padding-left: 0.8rem; }
+  .app-header > div > span { display: none; }
+  .app-header button { padding: 0.58rem 0.75rem; }
+
   .dashboard__side {
     flex-direction: column;
     gap: 0.75rem;
@@ -993,8 +1299,16 @@ body {
 
   .hero-card__value { font-size: 1.5rem; }
 
+  .loan-insights__header { flex-direction: column; gap: 0.75rem; }
+  .loan-insights__metrics { grid-template-columns: 1fr; }
+  .loan-settings__grid { grid-template-columns: 1fr; }
+  .loan-settings__rate-row { grid-template-columns: 1fr; }
+  .loan-comparison__row { align-items: flex-start; flex-direction: column; gap: 0.25rem; }
+
   .quick-add__amount-wrapper { flex: 1 1 100%; }
   .datepicker { flex: 1 1 100%; }
+  .quick-add__header { align-items: flex-start; }
+  .quick-add__last-payment { margin-top: 0.15rem; }
 
   .datepicker__dropdown {
     right: 0;

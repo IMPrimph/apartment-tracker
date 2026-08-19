@@ -33,7 +33,7 @@ const getMonthKey = (dateStr) => {
   return parseLocalDate(dateStr).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }).toUpperCase()
 }
 
-function History({ expenses, allExpenses, onEdit, onExport }) {
+function History({ expenses, onEdit, onExport, emiClassifications }) {
   const [expanded, setExpanded] = useState(false)
   const [filter, setFilter] = useState('all')
 
@@ -121,6 +121,7 @@ function History({ expenses, allExpenses, onEdit, onExport }) {
               <div className="history__month">{month}</div>
               {items.map(expense => {
                 const meta = TYPE_META[expense.type] || { label: expense.type, color: '#6c757d' }
+                const emiSplit = expense.type === 'emi' ? emiClassifications?.get(expense.id) : null
                 return (
                   <div
                     key={expense.id}
@@ -146,6 +147,12 @@ function History({ expenses, allExpenses, onEdit, onExport }) {
                           {expense.description || meta.label}
                         </div>
                         <div className="history__row-date">{formatDate(expense.date)}</div>
+                        {emiSplit && (
+                          <div className="history__emi-split">
+                            {emiSplit.regularAmount > 0 && <span>{formatCurrency(emiSplit.regularAmount)} normal</span>}
+                            {emiSplit.extraAmount > 0 && <span className="history__emi-extra">{formatCurrency(emiSplit.extraAmount)} extra</span>}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <span className="history__row-amount">{formatCurrency(expense.amount)}</span>

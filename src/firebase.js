@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, orderBy, query } from 'firebase/firestore'
+import { getFirestore, collection, addDoc, getDoc, getDocs, doc, setDoc, updateDoc, deleteDoc, orderBy, query } from 'firebase/firestore'
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -66,6 +66,28 @@ export const deleteExpense = async (id) => {
     await deleteDoc(doc(db, 'expenses', id))
   } catch (error) {
     console.error('Error deleting expense:', error)
+    throw error
+  }
+}
+
+export const getLoanSettings = async () => {
+  try {
+    const snapshot = await getDoc(doc(db, 'settings', 'homeLoan'))
+    return snapshot.exists() ? snapshot.data() : null
+  } catch (error) {
+    console.error('Error getting loan settings:', error)
+    throw error
+  }
+}
+
+export const saveLoanSettings = async (settings) => {
+  try {
+    await setDoc(doc(db, 'settings', 'homeLoan'), {
+      ...settings,
+      updatedAt: new Date()
+    }, { merge: true })
+  } catch (error) {
+    console.error('Error saving loan settings:', error)
     throw error
   }
 }

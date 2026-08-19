@@ -48,26 +48,51 @@ const buildSummarySheet = (totals, counts) => {
   return XLSX.utils.aoa_to_sheet(summaryData)
 }
 
-const buildSheetForExpenses = (title, expenses) => {
+const buildSheetForExpenses = (title, expenses, loanInsights) => {
   if (expenses.length === 0) {
     return XLSX.utils.aoa_to_sheet([['No data']])
   }
 
-  const sheetData = expenses.map(expense => ({
-    Description: expense.description || '',
-    Amount: toNumber(expense.amount),
-    Type: expense.type || 'unknown',
-    Date: normalizeTimestamp(expense.date),
-    CreatedAt: normalizeTimestamp(expense.createdAt),
-    UpdatedAt: normalizeTimestamp(expense.updatedAt)
-  }))
+  const sheetData = expenses.map(expense => {
+    const emiSplit = expense.type === 'emi' ? loanInsights?.classifications?.get(expense.id) : null
+    return {
+      Description: expense.description || '',
+      Amount: toNumber(expense.amount),
+      Type: expense.type || 'unknown',
+      Date: normalizeTimestamp(expense.date),
+      'EMI Classification': emiSplit?.classification || '',
+      'Normal EMI Amount': emiSplit?.regularAmount || '',
+      'Extra Principal Amount': emiSplit?.extraAmount || '',
+      CreatedAt: normalizeTimestamp(expense.createdAt),
+      UpdatedAt: normalizeTimestamp(expense.updatedAt)
+    }
+  })
 
   const sheet = XLSX.utils.json_to_sheet(sheetData, { skipHeader: false })
   XLSX.utils.sheet_add_aoa(sheet, [['Export', title]], { origin: 'G1' })
   return sheet
 }
 
-export const exportExpensesToExcel = (expenses = []) => {
+const buildLoanAnalysisSheet = (insights) => XLSX.utils.aoa_to_sheet([
+  ['Home Loan Analysis', 'Amount / Value'],
+  ['As of date', insights.asOfDate],
+  ['Current floating rate', `${insights.currentRate}%`],
+  ['Estimated current balance', Math.round(insights.currentBalance)],
+  ['Normal EMI baseline', insights.settings.normalEmi],
+  ['Regular EMI paid', Math.round(insights.regularPaid)],
+  ['Extra principal paid', Math.round(insights.extraPaid)],
+  ['Balance impact of extras today', Math.round(insights.balanceImpact)],
+  ['Interest already avoided', Math.round(insights.pastInterestSaved)],
+  ['Estimated lifetime interest saved', Math.round(insights.lifetimeInterestSaved)],
+  ['Estimated tenure saved (months)', insights.tenureSavedMonths],
+  ['Remaining tenure with extras (months)', insights.actualPlan?.months || ''],
+  ['Remaining tenure without extras (months)', insights.noExtraPlan?.months || ''],
+  [],
+  ['Month', 'Total Paid', 'Normal EMI', 'Extra Principal'],
+  ...insights.monthlyBreakdown.map(month => [month.month, month.paid, month.regular, month.extra])
+])
+
+export const exportExpensesToExcel = (expenses = [], loanInsights) => {
   const workbook = XLSX.utils.book_new()
 
   const categories = {
@@ -111,16 +136,20 @@ export const exportExpensesToExcel = (expenses = []) => {
   const summarySheet = buildSummarySheet(totals, counts)
   XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary')
 
-  XLSX.utils.book_append_sheet(workbook, buildSheetForExpenses('Bank Loan', categories.bankLoan), 'Bank Loan')
-  XLSX.utils.book_append_sheet(workbook, buildSheetForExpenses('Cash Payments', categories.cash), 'Cash Payments')
-  XLSX.utils.book_append_sheet(workbook, buildSheetForExpenses('Miscellaneous', categories.miscellaneous), 'Miscellaneous')
-  XLSX.utils.book_append_sheet(workbook, buildSheetForExpenses('EMI Payments', categories.emi), 'EMI Payments')
-
-  if (categories.other.length > 0) {
-    XLSX.utils.book_append_sheet(workbook, buildSheetForExpenses('Other Expenses', categories.other), 'Other')
+  if (loanInsights) {
+    XLSX.utils.book_append_sheet(workbook, buildLoanAnalysisSheet(loanInsights), 'Loan Analysis')
   }
 
-  const allSheet = buildSheetForExpenses('All Transactions', expenses)
+  XLSX.utils.book_append_sheet(workbook, buildSheetForExpenses('Bank Loan', categories.bankLoan, loanInsights), 'Bank Loan')
+  XLSX.utils.book_append_sheet(workbook, buildSheetForExpenses('Cash Payments', categories.cash, loanInsights), 'Cash Payments')
+  XLSX.utils.book_append_sheet(workbook, buildSheetForExpenses('Miscellaneous', categories.miscellaneous, loanInsights), 'Miscellaneous')
+  XLSX.utils.book_append_sheet(workbook, buildSheetForExpenses('EMI Payments', categories.emi, loanInsights), 'EMI Payments')
+
+  if (categories.other.length > 0) {
+    XLSX.utils.book_append_sheet(workbook, buildSheetForExpenses('Other Expenses', categories.other, loanInsights), 'Other')
+  }
+
+  const allSheet = buildSheetForExpenses('All Transactions', expenses, loanInsights)
   XLSX.utils.book_append_sheet(workbook, allSheet, 'All Transactions')
 
   const fileName = `apartment-cost-tracker-${new Date().toISOString().slice(0, 10)}.xlsx`

@@ -1,19 +1,26 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import DatePicker from './DatePicker'
 import { TYPE_DESCRIPTIONS } from '../utils/constants'
 import { convertToWords } from '../utils/convertToWords'
+import { formatCurrency } from '../utils/formatCurrency'
+import { previewEmiClassification } from '../utils/loanCalculations'
 
 const TYPE_OPTIONS = [
   { value: 'emi', label: 'EMI' },
-  { value: 'bankLoan', label: 'Bank Loan' },
+  { value: 'bankLoan', label: 'Bank disbursement' },
   { value: 'cash', label: 'Cash' },
-  { value: 'miscellaneous', label: 'Miscellaneous' }
+  { value: 'miscellaneous', label: 'Other' }
 ]
 
-function QuickAdd({ onSubmit, editingExpense, onCancelEdit, lastEmiAmount }) {
+const formatShortDate = (value) => value
+  ? new Date(`${value}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+  : ''
+
+function QuickAdd({ onSubmit, editingExpense, onCancelEdit, emiPayments, loanSettings }) {
   const [selectedType, setSelectedType] = useState('emi')
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
+  const [emiClassification, setEmiClassification] = useState('auto')
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -29,6 +36,7 @@ function QuickAdd({ onSubmit, editingExpense, onCancelEdit, lastEmiAmount }) {
       setSelectedType(editingExpense.type || 'emi')
       setAmount(editingExpense.amount?.toString() || '')
       setDescription(editingExpense.description || '')
+      setEmiClassification(editingExpense.emiClassification || 'auto')
       setDate(editingExpense.date || new Date().toISOString().split('T')[0])
       userTouchedAmount.current = true // Don't overwrite with EMI pre-fill
     }
@@ -36,10 +44,10 @@ function QuickAdd({ onSubmit, editingExpense, onCancelEdit, lastEmiAmount }) {
 
   // EMI pre-fill: only when switching to EMI type, not editing, and user hasn't touched amount
   useEffect(() => {
-    if (selectedType === 'emi' && !isEditing && lastEmiAmount > 0 && !userTouchedAmount.current) {
-      setAmount(lastEmiAmount.toString())
+    if (selectedType === 'emi' && !isEditing && loanSettings.normalEmi > 0 && !userTouchedAmount.current) {
+      setAmount(loanSettings.normalEmi.toString())
     }
-  }, [selectedType, isEditing, lastEmiAmount])
+  }, [selectedType, isEditing, loanSettings.normalEmi])
 
   // Cmd+K shortcut to focus amount
   useEffect(() => {
@@ -58,6 +66,7 @@ function QuickAdd({ onSubmit, editingExpense, onCancelEdit, lastEmiAmount }) {
     setSelectedType(type)
     setError('')
     setDescription('')
+    setEmiClassification('auto')
     userTouchedAmount.current = false
     if (type !== 'emi') {
       setAmount('')
@@ -93,13 +102,14 @@ function QuickAdd({ onSubmit, editingExpense, onCancelEdit, lastEmiAmount }) {
         type: selectedType,
         amount: parsed,
         description: description.trim() || TYPE_DESCRIPTIONS[selectedType] || selectedType,
-        date
+        date,
+        ...(selectedType === 'emi' ? { emiClassification } : {})
       })
       // Reset form after successful add
       if (!isEditing) {
         userTouchedAmount.current = false
         if (selectedType !== 'emi') setAmount('')
-        else setAmount(lastEmiAmount > 0 ? lastEmiAmount.toString() : '')
+        else setAmount(loanSettings.normalEmi > 0 ? loanSettings.normalEmi.toString() : '')
         setDescription('')
         setDate(new Date().toISOString().split('T')[0])
       }
@@ -115,6 +125,7 @@ function QuickAdd({ onSubmit, editingExpense, onCancelEdit, lastEmiAmount }) {
     setDescription('')
     setDate(new Date().toISOString().split('T')[0])
     setSelectedType('emi')
+    setEmiClassification('auto')
     setError('')
     userTouchedAmount.current = false
     onCancelEdit()
@@ -123,14 +134,38 @@ function QuickAdd({ onSubmit, editingExpense, onCancelEdit, lastEmiAmount }) {
   const numericAmount = parseFloat(amount) || 0
   const wordsText = numericAmount > 0 ? convertToWords(numericAmount) : ''
   const showDescription = selectedType === 'miscellaneous' || isEditing
+  const latestEmiDate = useMemo(() => emiPayments
+    .map(payment => payment.date)
+    .filter(Boolean)
+    .sort()
+    .at(-1), [emiPayments])
+  const hasMatchingPayment = useMemo(() => selectedType === 'emi' && numericAmount > 0 && emiPayments.some(payment => (
+    payment.id !== editingExpense?.id &&
+    payment.date === date &&
+    Number(payment.amount) === numericAmount
+  )), [selectedType, numericAmount, emiPayments, editingExpense?.id, date])
+  const emiPreview = useMemo(() => selectedType === 'emi'
+    ? previewEmiClassification(emiPayments, {
+        amount: numericAmount,
+        date,
+        emiClassification,
+        editingId: editingExpense?.id
+      }, loanSettings)
+    : null, [selectedType, emiPayments, numericAmount, date, emiClassification, editingExpense?.id, loanSettings])
 
   return (
     <section className="quick-add" id="quick-add">
       <form onSubmit={handleSubmit} className="quick-add__form">
         <div className="quick-add__header">
-          <span className="quick-add__title">
-            {isEditing ? 'Edit Payment' : 'Add Payment'}
-          </span>
+          <div>
+            <span className="quick-add__eyebrow">Quick entry</span>
+            <h2 className="quick-add__title">
+              {isEditing ? 'Edit payment' : 'Add a payment'}
+            </h2>
+          </div>
+          {latestEmiDate && !isEditing && (
+            <span className="quick-add__last-payment">Last EMI: {formatShortDate(latestEmiDate)}</span>
+          )}
         </div>
 
         <div className="quick-add__chips">
@@ -157,6 +192,28 @@ function QuickAdd({ onSubmit, editingExpense, onCancelEdit, lastEmiAmount }) {
           />
         )}
 
+        {selectedType === 'emi' && (
+          <div className="quick-add__emi-mode">
+            <span>How should this payment be treated?</span>
+            <div>
+              {[
+                { value: 'auto', label: 'Auto classify' },
+                { value: 'regular', label: 'Normal EMI' },
+                { value: 'extra', label: 'Extra principal' }
+              ].map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`chip chip--sm ${emiClassification === option.value ? 'chip--active' : ''}`}
+                  onClick={() => setEmiClassification(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="quick-add__row">
           <div className="quick-add__amount-wrapper">
             <span className="quick-add__rupee">₹</span>
@@ -164,6 +221,7 @@ function QuickAdd({ onSubmit, editingExpense, onCancelEdit, lastEmiAmount }) {
               ref={amountRef}
               type="number"
               className="quick-add__amount"
+              aria-label="Payment amount"
               value={amount}
               onChange={handleAmountChange}
               placeholder="Amount"
@@ -186,7 +244,18 @@ function QuickAdd({ onSubmit, editingExpense, onCancelEdit, lastEmiAmount }) {
         </div>
 
         {error && <p className="quick-add__error">{error}</p>}
+        {hasMatchingPayment && (
+          <p className="quick-add__duplicate-warning">
+            A payment with this amount and date already exists. Save again only if it was a separate transfer.
+          </p>
+        )}
         {wordsText && <p className="quick-add__words">{wordsText}</p>}
+        {emiPreview && numericAmount > 0 && (
+          <p className={`quick-add__classification quick-add__classification--${emiPreview.classification}`}>
+            This entry: {formatCurrency(emiPreview.regularAmount)} normal EMI
+            {emiPreview.extraAmount > 0 && <> + <strong>{formatCurrency(emiPreview.extraAmount)} extra principal</strong></>}
+          </p>
+        )}
 
         {isEditing && (
           <div className="quick-add__edit-actions">

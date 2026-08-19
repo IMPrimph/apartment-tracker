@@ -1,0 +1,18 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // This application currently uses a client-side passphrase rather than
+    // Firebase Authentication. Keep the existing expenses access model here.
+    match /expenses/{expenseId} {
+      allow read, create, update, delete: if true;
+    }
+
+    // Loan configuration is deliberately isolated from expense transactions.
+    // Only the single home-loan settings document is exposed to the client.
+    match /settings/{settingId} {
+      allow read, create, update: if settingId == 'homeLoan';
+      allow delete: if false;
+    }
+  }
+}

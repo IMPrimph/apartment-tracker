@@ -3,14 +3,26 @@ import Dashboard from './components/Dashboard'
 import QuickAdd from './components/QuickAdd'
 import History from './components/History'
 import AuthGate from './components/AuthGate'
+import LoanInsights from './components/LoanInsights'
 import { formatCurrency } from './utils/formatCurrency'
-import { initializeFirebase, addExpense, getExpenses, updateExpense, deleteExpense } from './firebase'
+import { calculateLoanInsights, DEFAULT_LOAN_SETTINGS, normalizeLoanSettings } from './utils/loanCalculations'
+import {
+  initializeFirebase,
+  addExpense,
+  getExpenses,
+  updateExpense,
+  deleteExpense,
+  getLoanSettings,
+  saveLoanSettings
+} from './firebase'
 
 function TrackerApp() {
   const [expenses, setExpenses] = useState([])
   const [loading, setLoading] = useState(true)
   const [notification, setNotification] = useState(null)
   const [editingExpense, setEditingExpense] = useState(null)
+  const [loanSettings, setLoanSettings] = useState(DEFAULT_LOAN_SETTINGS)
+  const [savingLoanSettings, setSavingLoanSettings] = useState(false)
   const notificationTimer = useRef(null)
 
   useEffect(() => {
@@ -27,8 +39,15 @@ function TrackerApp() {
 
   const loadExpenses = async () => {
     try {
-      const expenseList = await getExpenses()
+      const [expenseList, storedLoanSettings] = await Promise.all([
+        getExpenses(),
+        getLoanSettings().catch(error => {
+          console.warn('Using default loan settings:', error)
+          return null
+        })
+      ])
       setExpenses(expenseList)
+      if (storedLoanSettings) setLoanSettings(normalizeLoanSettings(storedLoanSettings))
     } catch (error) {
       console.error('Error loading expenses:', error)
     } finally {
@@ -75,6 +94,20 @@ function TrackerApp() {
     setEditingExpense(null)
   }, [])
 
+  // All hooks must be above any early returns — Rules of Hooks
+  const costExpenses = useMemo(() => expenses.filter(e => e.type === 'bankLoan' || e.type === 'cash'), [expenses])
+  const emiPayments = useMemo(() => expenses.filter(e => e.type === 'emi'), [expenses])
+  const miscExpenses = useMemo(() => expenses.filter(e => e.type === 'miscellaneous'), [expenses])
+  const loanInsights = useMemo(
+    () => calculateLoanInsights(emiPayments, loanSettings),
+    [emiPayments, loanSettings]
+  )
+
+  const handleJumpToAdd = useCallback(() => {
+    document.getElementById('quick-add')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    window.setTimeout(() => document.querySelector('.quick-add__amount')?.focus(), 350)
+  }, [])
+
   const handleExport = useCallback(async () => {
     if (expenses.length === 0) {
       showNotification('No expenses to export.', 'error')
@@ -82,27 +115,29 @@ function TrackerApp() {
     }
     try {
       const { exportExpensesToExcel } = await import('./utils/exportToExcel')
-      exportExpensesToExcel(expenses)
+      exportExpensesToExcel(expenses, loanInsights)
       showNotification('Export created')
     } catch (error) {
       console.error('Export error:', error)
       showNotification('Failed to export.', 'error')
     }
-  }, [expenses, showNotification])
+  }, [expenses, loanInsights, showNotification])
 
-  // All hooks must be above any early returns — Rules of Hooks
-  const costExpenses = useMemo(() => expenses.filter(e => e.type === 'bankLoan' || e.type === 'cash'), [expenses])
-  const emiPayments = useMemo(() => expenses.filter(e => e.type === 'emi'), [expenses])
-  const miscExpenses = useMemo(() => expenses.filter(e => e.type === 'miscellaneous'), [expenses])
-
-  const lastEmiAmount = useMemo(() => {
-    const sorted = [...emiPayments].sort((a, b) => {
-      const da = a.date ? new Date(a.date + 'T00:00:00') : new Date(0)
-      const db = b.date ? new Date(b.date + 'T00:00:00') : new Date(0)
-      return db - da
-    })
-    return sorted.length > 0 ? (parseFloat(sorted[0].amount) || 0) : 0
-  }, [emiPayments])
+  const handleSaveLoanSettings = useCallback(async (nextSettings) => {
+    setSavingLoanSettings(true)
+    try {
+      const normalized = normalizeLoanSettings(nextSettings)
+      await saveLoanSettings(normalized)
+      setLoanSettings(normalized)
+      showNotification('Loan settings saved')
+    } catch (error) {
+      console.error('Error saving loan settings:', error)
+      showNotification('Could not save loan settings.', 'error')
+      throw error
+    } finally {
+      setSavingLoanSettings(false)
+    }
+  }, [showNotification])
 
   if (loading) {
     return (
@@ -120,11 +155,16 @@ function TrackerApp() {
   return (
     <div className="app-shell">
       <div className="container">
-        <Dashboard
-          expenses={costExpenses}
-          emiPayments={emiPayments}
-          miscExpenses={miscExpenses}
-        />
+        <header className="app-header">
+          <div>
+            <strong>Apartment tracker</strong>
+            <span>{emiPayments.length} EMI payments recorded</span>
+          </div>
+          <button type="button" onClick={handleJumpToAdd}>
+            <span aria-hidden="true">＋</span>
+            Add payment
+          </button>
+        </header>
 
         {editingExpense && (
           <div className="edit-bar">
@@ -139,14 +179,28 @@ function TrackerApp() {
           onSubmit={handleSubmit}
           editingExpense={editingExpense}
           onCancelEdit={handleCancelEdit}
-          lastEmiAmount={lastEmiAmount}
+          emiPayments={emiPayments}
+          loanSettings={loanSettings}
+        />
+
+        <LoanInsights
+          insights={loanInsights}
+          settings={loanSettings}
+          onSaveSettings={handleSaveLoanSettings}
+          savingSettings={savingLoanSettings}
+        />
+
+        <Dashboard
+          expenses={costExpenses}
+          emiPayments={emiPayments}
+          miscExpenses={miscExpenses}
         />
 
         <History
           expenses={expenses}
-          allExpenses={expenses}
           onEdit={handleEdit}
           onExport={handleExport}
+          emiClassifications={loanInsights.classifications}
         />
       </div>
 
